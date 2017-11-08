@@ -1,15 +1,15 @@
 var chatObserver = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
-        console.log(mutation.target.className);
+        console.log('foo');
     });
 });
 
 var appWrapperObserver = new MutationObserver(function(mutations, observer) {
     mutations.some(function(mutation) {
-        targets = mutation.target.querySelectorAll('div.chat');
+        targets = mutation.target.querySelectorAll('div.chat div.chat-secondary div.chat-meta span:first-child');
         if (targets.length > 0) {
             targets.forEach(function(target) {
-                chatObserver.observe(target, {attributes: true});
+                chatObserver.observe(target, {childList: true, characterData: true, subtree: true});
             });
             observer.disconnect();
             return true;
