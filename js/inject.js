@@ -1,6 +1,19 @@
+var countUnreadMessages = function() {
+    count = 0;
+    nodes = document.body.querySelectorAll('div#app > div.app-wrapper div.chat div.chat-secondary div.chat-meta span:first-child > div > span');
+    nodes.forEach(function(node) {
+        current = Number(node.innerHTML);
+        if (!isNaN(current)) {
+            count += current;
+        }
+    });
+    console.log(count);
+};
+
+
 var chatObserver = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
-        console.log('foo');
+        countUnreadMessages();
     });
 });
 
