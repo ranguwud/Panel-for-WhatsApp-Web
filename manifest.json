@@ -16,5 +16,11 @@
     
     "background": {
         "page": "html/background.html"
-    }
+    },
+
+    "permissions": [
+        "https://web.whatsapp.com/*",
+        "webRequest",
+        "webRequestBlocking"
+    ]
 }
