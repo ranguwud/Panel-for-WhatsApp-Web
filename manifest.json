@@ -1,7 +1,16 @@
 {
-  "manifest_version": 2,
-  "name": "WhatsAppPanel",
-  "version": "1.0",
+    "manifest_version": 2,
+    "name": "WhatsAppPanel",
+    "version": "1.0",
 
-  "description": "Panel for easy access to WhatsApp™ Web",
+    "description": "Panel for easy access to WhatsApp™ Web",
+
+    "content_scripts": [
+        {
+            "matches": ["https://web.whatsapp.com/*"],
+            "js": ["js/inject.js"],
+            "all_frames": true,
+            "run_at": "document_end"
+        }
+    ]
 }
