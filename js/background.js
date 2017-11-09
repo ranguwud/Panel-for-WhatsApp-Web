@@ -1,3 +1,12 @@
+function receiveMessage(event)
+{
+    if (event.origin !== "https://web.whatsapp.com")
+        return;
+    console.log(event.data);
+}
+
+window.addEventListener("message", receiveMessage, false);
+
 browser.webRequest.onHeadersReceived.addListener(function(info) {
     if (info.tabId > -1) return;
     var headers = info.responseHeaders;
