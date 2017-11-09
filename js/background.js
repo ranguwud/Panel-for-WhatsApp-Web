@@ -7,14 +7,19 @@ function receiveMessage(event)
 
 window.addEventListener("message", receiveMessage, false);
 
-browser.webRequest.onHeadersReceived.addListener(function(info) {
-    if (info.tabId > -1) return;
-    var headers = info.responseHeaders;
-    for (var i = 0; i < headers.length; i++) {
+browser.webRequest.onHeadersReceived.addListener(function(details) {
+    if (details.tabId > -1)
+        return;
+    var headers = details.responseHeaders;
+    var indices = new Array();
+    for (var i = 0; i < headers.length; ++i) {
         var name = headers[i].name.toLowerCase();
         if (name === 'x-frame-options' || name === 'frame-options') {
-            headers.splice(i, 1);
-            return {"responseHeaders": headers};
+            indices.push(i);
         }
     }
+    for (var i = indices.length - 1; i >= 0; --i) {
+        headers.splice(indices[i], 1);
+    }
+    return {"responseHeaders": headers};
 }, {"urls": ["*://*.web.whatsapp.com/*"]}, ["blocking", "responseHeaders"]);
