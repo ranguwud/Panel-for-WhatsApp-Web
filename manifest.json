@@ -5,6 +5,11 @@
 
     "description": "Panel for easy access to WhatsApp™ Web",
 
+    "icons": {
+        "48": "icons/icon.svg",
+        "96": "icons/icon.svg"
+    },
+    
     "content_scripts": [
         {
             "matches": ["https://web.whatsapp.com/*"],
