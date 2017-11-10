@@ -17,7 +17,15 @@ if (inIframe()) {
             }
         });
         //TODO: * -> moz-extension://xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-        window.top.postMessage(count, '*');
+        if (count > 0) {
+            if (count < 100) {
+                window.top.postMessage(count.toString(), '*');
+            } else {
+                window.top.postMessage('99+', '*');
+            }
+        } else {
+            window.top.postMessage('', '*');
+        }
     };
 
 

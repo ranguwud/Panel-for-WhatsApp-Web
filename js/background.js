@@ -2,7 +2,7 @@ function receiveMessage(event)
 {
     if (event.origin !== "https://web.whatsapp.com")
         return;
-    console.log(event.data);
+    browser.browserAction.setBadgeText({text: event.data});
 }
 
 window.addEventListener("message", receiveMessage, false);
