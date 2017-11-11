@@ -7,6 +7,15 @@ function receiveMessage(event)
 
 window.addEventListener("message", receiveMessage, false);
 
+function popupOpened() {
+    browser.browserAction.setBadgeText({text: ""});
+    document.getElementById("background-iframe").src = "about:blank";
+}
+
+function popupClosed() {
+    document.getElementById("background-iframe").src = "https://web.whatsapp.com/";
+}
+
 browser.webRequest.onHeadersReceived.addListener(function(details) {
     if (details.tabId > -1)
         return;
