@@ -1,3 +1,9 @@
+<?xml version="1.0"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
 <svg viewbox="0 0 48 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg">
     <devs>
         <path id="bubble" d="M 15 58 A 40 30 0 1 1 32 68 L 7 81 Z"
