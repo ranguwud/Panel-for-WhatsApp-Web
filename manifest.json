@@ -1,9 +1,9 @@
 {
     "manifest_version": 2,
-    "name": "WhatsAppPanel",
+    "name": "__MSG_extensionName__",
+    "description": "__MSG_extensionDescription__",
+    "default_locale": "en",
     "version": "1.0",
-
-    "description": "Panel for easy access to WhatsApp™ Web",
 
     "icons": {
         "48": "icons/icon.svg",

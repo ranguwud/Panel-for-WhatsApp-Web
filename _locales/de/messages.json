@@ -1,0 +1,12 @@
+{
+  "extensionName": {
+    "message": "WhatsAppPanel",
+    "description": "Name of the extension."
+  },
+
+  "extensionDescription": {
+    "message": "Einfacher Zugriff auf WhatsApp™ Web in einem separaten Panel. Dieses Projekt wird nicht offiziell durch WhatsApp™ gesponsert oder unterstützt.",
+    "description": "Description of the extension."
+  }
+
+}
