@@ -1,0 +1,9 @@
+html, body, iframe {
+    margin: 0;
+    border: none;
+}
+
+#popup-iframe {
+    width: 780px;
+    height: 580px;
+}
