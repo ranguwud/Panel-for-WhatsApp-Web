@@ -12,7 +12,7 @@
     
     "browser_action": {
         "default_icon": "icons/icon.svg",
-        "default_title": "WhatsAppPanel",
+        "default_title": "__MSG_extensionName__",
         "default_popup": "html/popup.html"
     },
     
