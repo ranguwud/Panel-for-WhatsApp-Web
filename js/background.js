@@ -2,14 +2,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-function receiveMessage(event)
-{
+// Add event listeners
+window.addEventListener("message", receiveUnreadMessages, false);
+browser.webRequest.onHeadersReceived.addListener(removeResponseHeaders, {"urls": ["*://*.web.whatsapp.com/*"]}, ["blocking", "responseHeaders"]);
+
+
+// Function definitions
+function receiveUnreadMessages(event) {
     if (event.origin !== "https://web.whatsapp.com")
         return;
     browser.browserAction.setBadgeText({text: event.data});
 }
-
-window.addEventListener("message", receiveMessage, false);
 
 function popupOpened() {
     browser.browserAction.setBadgeText({text: ""});
@@ -20,7 +23,7 @@ function popupClosed() {
     document.getElementById("background-iframe").src = "https://web.whatsapp.com/";
 }
 
-browser.webRequest.onHeadersReceived.addListener(function(details) {
+function removeResponseHeaders(details) {
     if (details.tabId > -1)
         return;
     var headers = details.responseHeaders;
@@ -35,4 +38,4 @@ browser.webRequest.onHeadersReceived.addListener(function(details) {
         headers.splice(indices[i], 1);
     }
     return {"responseHeaders": headers};
-}, {"urls": ["*://*.web.whatsapp.com/*"]}, ["blocking", "responseHeaders"]);
+}

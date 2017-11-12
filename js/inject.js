@@ -2,6 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+// Attach bodyObserver, if loaded in iframe
+if (inIframe()) {
+    var target = document.body;
+    var bodyObserver = new MutationObserver(bodyMutated);
+    bodyObserver.observe(target, {childList: true});
+}
+
+
+// Function definitions
 function inIframe () {
     try {
         return window.self !== window.top;
@@ -10,71 +19,74 @@ function inIframe () {
     }
 }
 
-if (inIframe()) {
-    var countUnreadMessages = function() {
-        count = 0;
-        nodes = document.body.querySelectorAll('div#app > div.app-wrapper div.chat div.chat-secondary div.chat-meta span:first-child > div > span');
-        nodes.forEach(function(node) {
-            current = Number(node.innerHTML);
-            if (!isNaN(current)) {
-                count += current;
-            }
-        });
-        //TODO: * -> moz-extension://xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-        if (count > 0) {
-            if (count < 100) {
-                window.top.postMessage(count.toString(), '*');
-            } else {
-                window.top.postMessage('99+', '*');
-            }
-        } else {
-            window.top.postMessage('', '*');
+function countUnreadMessages() {
+    count = 0;
+    nodes = document.body.querySelectorAll('div#app > div.app-wrapper div.chat div.chat-secondary div.chat-meta span:first-child > div > span');
+    nodes.forEach(function(node) {
+        current = Number(node.innerHTML);
+        if (!isNaN(current)) {
+            count += current;
         }
-    };
-
-
-    var chatObserver = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            countUnreadMessages();
-        });
     });
+    return count;
+}
 
-    var appWrapperObserver = new MutationObserver(function(mutations, observer) {
-        mutations.some(function(mutation) {
-            targets = mutation.target.querySelectorAll('div.chat div.chat-secondary div.chat-meta span:first-child');
-            if (targets.length > 0) {
-                countUnreadMessages();
-                targets.forEach(function(target) {
-                    chatObserver.observe(target, {childList: true, characterData: true, subtree: true});
-                });
-                observer.disconnect();
-                return true;
-            }
-        });
+function postUnreadMessages(unreadMessageCount) {
+    //TODO: * -> moz-extension://xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    if (unreadMessageCount > 0) {
+        if (unreadMessageCount < 100) {
+            window.top.postMessage(unreadMessageCount.toString(), '*');
+        } else {
+            window.top.postMessage('99+', '*');
+        }
+    } else {
+        window.top.postMessage('', '*');
+    }
+}
+
+function chatMutated(mutations) {
+    mutations.forEach(function(mutation) {
+        var count = countUnreadMessages();
+        postUnreadMessages(count);
     });
+}
 
-    var appObserver = new MutationObserver(function(mutations, observer) {
-        mutations.some(function(mutation) {
-            target = mutation.target.querySelector('div.app-wrapper');
-            if (target) {
-                appWrapperObserver.observe(target, {childList: true})
-                observer.disconnect();
-                return true;
-            }
-        });
+function appWrapperMutated(mutations, observer) {
+    mutations.some(function(mutation) {
+        targets = mutation.target.querySelectorAll('div.chat div.chat-secondary div.chat-meta span:first-child');
+        if (targets.length > 0) {
+            var count = countUnreadMessages();
+            postUnreadMessages(count);
+            targets.forEach(function(target) {
+                var chatObserver = new MutationObserver(chatMutated);
+                chatObserver.observe(target, {childList: true, characterData: true, subtree: true});
+            });
+            observer.disconnect();
+            return true;
+        }
     });
+}
 
-    var bodyObserver = new MutationObserver(function(mutations, observer) {
-        mutations.some(function(mutation) {
-            target = mutation.target.querySelector('div#app');
-            if (target) {
-                appObserver.observe(target, {childList: true});
-                observer.disconnect();
-                return true;
-            }
-        });
+function appMutated(mutations, observer) {
+    mutations.some(function(mutation) {
+        target = mutation.target.querySelector('div.app-wrapper');
+        if (target) {
+            var appWrapperObserver = new MutationObserver(appWrapperMutated);
+            appWrapperObserver.observe(target, {childList: true})
+            observer.disconnect();
+            return true;
+        }
     });
+}
 
-    var target = document.body;
-    bodyObserver.observe(target, {childList: true});
+function bodyMutated(mutations, observer) {
+    mutations.some(function(mutation) {
+        target = mutation.target.querySelector('div#app');
+        if (target) {
+            var appObserver = new MutationObserver(appMutated);
+            appObserver.observe(target, {childList: true});
+            observer.disconnect();
+            return true;
+        }
+    });
 }
