@@ -1,0 +1,60 @@
+[de]
+Diese Erweiterung fügt einen Button neben der Adressleiste hinzu, durch den
+WhatsApp™ Web in einem separaten Panel geöffnet werden kann, ohne den
+Arbeitsfluss zu unterbrechen. Bei geschlossenem Panel zeigt ein kleiner Hinweis
+auf dem Button die Anzahl der ungelesenen Nachrichten an und ist immer im Blick,
+auch ohne den Tab zu wechseln. Um loszulegen, loggen Sie sich wie gewohnt bei
+WhatsApp™ Web ein.
+
+Bitte beachten Sie, dass diese Erweiterung ein Freizeit-Projekt ist, das die
+Benutzung von WhatsApp™ Web erleichtern soll. Es steht nicht mit WhatsApp™ oder
+Produkten von WhatsApp™ in Verbindung und wird auch nicht von WhatsApp™ unterstützt
+oder gesponsert. WhatsApp™ ist eine eingetragene Marke von Facebook Inc.
+
+Für Feedback, Fehlermeldungen oder Verbesserungsvorschläge besuchen Sie bitte
+die Homepage der Erweiterung unter https://github.com/ranguwud/Panel-for-WhatsApp-Web.
+
+[en]
+This extension adds a button next to your address bar that allows you to access
+WhatsApp™ Web in a separate panel without interrupting your workflow. When the
+panel is closed, a badge on the button informs you about the number of unread
+messages, being always in your view without the need to switch tabs. To get
+started, log in into WhatsApp™ Web in the way you are used to.
+
+Please note that this is a hobby project that is supposed to simplify the use of
+WhatsApp™ Web. It is not affiliated with WhatsApp™ or WhatsApp™ products, nor is
+it endorsed or sponsored by WhatsApp™ in any way. WhatsApp™ is a registered
+trademark of Facebook Inc.
+
+Please visit the extension homepage https://github.com/ranguwud/Panel-for-WhatsApp-Web
+for feedback, bug reports or suggestions.
+
+[es]
+Esta extensión añade un botón al lado de la barra de direcciones que permite
+acceder a WhatsApp™ Web en un panel separado sin interrumpir el flujo de trabajo.
+Con el panel cerrado, una nota encima del botón muestra el número de los mensajes
+ya no leídos, siempre estando en su vista sin la necesidad de cambiar la pestaña.
+Para empezar, se registra en WhatsApp™ Web como de costumbre.
+
+Note que esta extensión es un proyecto de afición que debería ayudar utilizar
+WhatsApp™ Web. No está afiliada a WhatsApp™ o productos de WhatsApp™, ni
+oficialmente patrocinada o apoyada por WhatsApp™. WhatsApp™ es una marca
+registrada de Facebook Inc.
+
+Visite el sitio web https://github.com/ranguwud/Panel-for-WhatsApp-Web de la
+extensión para feedback, informe de errores o propuestas.
+
+[fr]
+Cette extension ajoute un bouton à côté de votre barre d'adresse, qui vous permet
+d'accéder WhatsApp™ Web dans un panel séparé sans d'interrompre votre flux de
+travail. Lorsque le panel est fermé, un panneau sur le bouton vous informe du
+nombre de messages non lus, toujours étant dans votre regard sans la nécessité
+de changer l'onglet. Pour commencer, connectez sur WhatsApp™ Web comme d'habitude.
+
+Notez que cette extension est un projet de loisirs qui est conçu pour rendre plus
+simple l'usage de WhatsApp™ Web. Elle n'est pas affiliée à WhatsApp™ ou produits
+de WhatsApp™, ni favorisée ou sponsorisée par WhatsApp™. WhatsApp™ est une marque
+déposée de Facebook Inc.
+
+Visitez la page d'accueil de l'extension sur https://github.com/ranguwud/Panel-for-WhatsApp-Web
+pour feedback, rapports de bogue ou propositions.
