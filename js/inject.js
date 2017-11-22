@@ -57,7 +57,8 @@ function textMutated(mutations) {
         text = mutation.target.data
         var data = {};
         data[title] = text;
-        window.top.postMessage(JSON.stringify(data), '*');
+        var message = { "message": JSON.stringify(data) };
+        window.top.postMessage(JSON.stringify(message), '*');
         return true;
     });
 }
@@ -68,7 +69,8 @@ function placeholderMutated(mutations) {
         text = mutation.target.parentNode.querySelector("div.pluggable-input-body").innerHTML;
         var data = {};
         data[title] = text;
-        window.top.postMessage(JSON.stringify(data), '*');
+        var message = { "message": JSON.stringify(data) };
+        window.top.postMessage(JSON.stringify(message), '*');
         return true;
     });
 }
@@ -100,9 +102,52 @@ function appWrapperMutated(mutations, observer) {
             target = mutation.target.querySelector('div.app.two');
             var chatPaneObserver = new MutationObserver(chatPaneMutated);
             chatPaneObserver.observe(target, {childList: true});
+
+            var message = {"state": "ready"};
+            window.top.postMessage(JSON.stringify(message), '*');
+            var message = {"state": window.frameElement.className};
+            window.top.postMessage(JSON.stringify(message), '*');
+            
+            window.addEventListener("message", pasteUnsentMessage, false);
             return true;
         }
     });
+}
+
+function waitforNode(selector, callback) {
+    // Check if condition met. If not, re-check later (msec).
+    node = document.body.querySelector(selector)
+    while (node == null) {
+        setTimeout(function() {
+            waitforNode(selector, callback);
+        }, 100);
+        return;
+    }
+    // Condition finally met. callback() can be executed.
+    callback();
+}
+
+function pasteUnsentMessage(event) {
+    messages = JSON.parse(event.data);
+    for (var recipient in messages) {
+        targets = document.body.querySelectorAll('div.chat span.emojitext.ellipsify');
+        targets.forEach(function(target) {
+            if (recipient == target.title) {
+                function triggerMouseEvent (node, eventType) {
+                    var clickEvent = document.createEvent ('MouseEvents');
+                    clickEvent.initEvent (eventType, true, true);
+                    node.dispatchEvent (clickEvent);
+                }
+                triggerMouseEvent (target, "mousedown");
+
+                waitforNode("#main footer div.pluggable-input-body", function() {
+                    document.body.querySelector("#main footer div.pluggable-input-placeholder").hidden = true;
+                    document.body.querySelector("#main footer div.pluggable-input-body").innerHTML = messages[recipient];
+                });
+                return true;
+            }
+        });
+    }
 }
 
 function appMutated(mutations, observer) {
@@ -127,8 +172,4 @@ function bodyMutated(mutations, observer) {
             return true;
         }
     });
-}
-
-function iframeClosed(event) {
-    window.top.postMessage('asdf', '*');
 }

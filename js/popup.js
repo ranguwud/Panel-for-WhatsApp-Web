@@ -19,16 +19,28 @@ function popupClosed(event) {
     document.getElementById("popup-iframe").src = "about:blank";
     var background = browser.extension.getBackgroundPage();
     background.popupClosed();
+    console.log(background.messageStore);
 }
 
 function receiveUnsentMessages(event) {
     if (event.origin !== "https://web.whatsapp.com")
         return;
-    var background = browser.extension.getBackgroundPage();
-    data = JSON.parse(event.data);
-    for (var key in data) {
-        if (data.hasOwnProperty(key)) {           
-            background.messageStore[key] = data[key];
+    var message = JSON.parse(event.data);
+    
+    if ("message" in message) {
+        var data = JSON.parse(message["message"]);
+        var background = browser.extension.getBackgroundPage();
+        for (var key in data) {
+            if (data.hasOwnProperty(key)) {           
+                background.messageStore[key] = data[key];
+            }
+        }
+    }
+    if ("state" in message) {
+        if (message["state"] == "ready") {
+            var background = browser.extension.getBackgroundPage();
+            var msg = JSON.stringify(background.messageStore);
+            document.getElementById("popup-iframe").contentWindow.postMessage(msg, '*');
         }
     }
 }
