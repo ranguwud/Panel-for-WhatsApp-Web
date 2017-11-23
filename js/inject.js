@@ -54,7 +54,8 @@ function chatMutated(mutations) {
 function textMutated(mutations) {
     mutations.some(function(mutation) {
         title = document.body.querySelector("div.chat.active div.chat-title > span").title;
-        text = mutation.target.data
+        //TODO: Can't that be done using mutation.target??
+        text = encodeURI(document.body.querySelector("#main footer div.pluggable-input-body").innerHTML);
         var data = {};
         data[title] = text;
         var message = { "message": JSON.stringify(data) };
@@ -66,7 +67,7 @@ function textMutated(mutations) {
 function placeholderMutated(mutations) {
     mutations.some(function(mutation) {
         title = document.body.querySelector("div.chat.active div.chat-title > span").title;
-        text = mutation.target.parentNode.querySelector("div.pluggable-input-body").innerHTML;
+        text = encodeURI(mutation.target.parentNode.querySelector("div.pluggable-input-body").innerHTML);
         var data = {};
         data[title] = text;
         var message = { "message": JSON.stringify(data) };
@@ -130,23 +131,30 @@ function waitforNode(selector, callback) {
 function pasteUnsentMessage(event) {
     messages = JSON.parse(event.data);
     for (var recipient in messages) {
-        targets = document.body.querySelectorAll('div.chat span.emojitext.ellipsify');
-        targets.forEach(function(target) {
-            if (recipient == target.title) {
-                function triggerMouseEvent (node, eventType) {
-                    var clickEvent = document.createEvent ('MouseEvents');
-                    clickEvent.initEvent (eventType, true, true);
-                    node.dispatchEvent (clickEvent);
-                }
-                triggerMouseEvent (target, "mousedown");
+        if (!messages[recipient] == "") {
+            targets = document.body.querySelectorAll('div.chat span.emojitext.ellipsify');
+            targets.forEach(function(target) {
+                if (recipient == target.title) {
+                    function triggerMouseEvent (node, eventType) {
+                        var clickEvent = document.createEvent ('MouseEvents');
+                        clickEvent.initEvent (eventType, true, true);
+                        node.dispatchEvent (clickEvent);
+                    }
+                    triggerMouseEvent (target, "mousedown");
 
-                waitforNode("#main footer div.pluggable-input-body", function() {
-                    document.body.querySelector("#main footer div.pluggable-input-placeholder").hidden = true;
-                    document.body.querySelector("#main footer div.pluggable-input-body").innerHTML = messages[recipient];
-                });
-                return true;
-            }
-        });
+                    waitforNode("#main footer div.pluggable-input-body", function() {
+                        node = document.body.querySelector("#main footer div.pluggable-input-body");
+                        node.innerHTML = decodeURI(messages[recipient]);
+                        var event = new Event('input', {
+                            'bubbles': true,
+                            'cancelable': true
+                        });
+                        node.dispatchEvent(event);
+                    });
+                    return true;
+                }
+            });
+        }
     }
 }
 
