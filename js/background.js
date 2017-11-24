@@ -9,6 +9,9 @@ messageStore = {};
 // Add event listeners
 window.addEventListener("message", receiveUnreadMessages, false);
 browser.webRequest.onHeadersReceived.addListener(removeResponseHeaders, {"urls": ["*://*.web.whatsapp.com/*"]}, ["blocking", "responseHeaders"]);
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById("background-iframe").className = browser.extension.getURL("").split("/")[2];
+}, false);
 
 
 // Function definitions

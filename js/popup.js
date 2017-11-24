@@ -6,6 +6,9 @@
 document.addEventListener("DOMContentLoaded", popupOpened);
 window.addEventListener("unload", popupClosed, true);
 window.addEventListener("message", receiveUnsentMessages, false);
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById("popup-iframe").className = browser.extension.getURL("").split("/")[2];
+}, false);
 
 
 // Function definitions
@@ -19,7 +22,6 @@ function popupClosed(event) {
     document.getElementById("popup-iframe").src = "about:blank";
     var background = browser.extension.getBackgroundPage();
     background.popupClosed();
-    console.log(background.messageStore);
 }
 
 function receiveUnsentMessages(event) {
@@ -40,7 +42,7 @@ function receiveUnsentMessages(event) {
         if (message["state"] == "ready") {
             var background = browser.extension.getBackgroundPage();
             var msg = JSON.stringify(background.messageStore);
-            document.getElementById("popup-iframe").contentWindow.postMessage(msg, '*');
+            document.getElementById("popup-iframe").contentWindow.postMessage(msg, 'https://web.whatsapp.com');
         }
     }
 }

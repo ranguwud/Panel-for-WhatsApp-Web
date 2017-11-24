@@ -7,6 +7,7 @@ if (inIframe()) {
     var target = document.body;
     var bodyObserver = new MutationObserver(bodyMutated);
     bodyObserver.observe(target, {childList: true});
+    var uuid = window.frameElement.className;
 }
 
 
@@ -32,15 +33,14 @@ function countUnreadMessages() {
 }
 
 function postUnreadMessages(unreadMessageCount) {
-    //TODO: * -> moz-extension://xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     if (unreadMessageCount > 0) {
         if (unreadMessageCount < 100) {
-            window.top.postMessage(unreadMessageCount.toString(), '*');
+            window.top.postMessage(unreadMessageCount.toString(), 'moz-extension://' + uuid + '/');
         } else {
-            window.top.postMessage('99+', '*');
+            window.top.postMessage('99+', 'moz-extension://' + uuid + '/');
         }
     } else {
-        window.top.postMessage('', '*');
+        window.top.postMessage('', 'moz-extension://' + uuid + '/');
     }
 }
 
@@ -59,7 +59,7 @@ function textMutated(mutations) {
         var data = {};
         data[title] = text;
         var message = { "message": JSON.stringify(data) };
-        window.top.postMessage(JSON.stringify(message), '*');
+        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
         return true;
     });
 }
@@ -71,7 +71,7 @@ function placeholderMutated(mutations) {
         var data = {};
         data[title] = text;
         var message = { "message": JSON.stringify(data) };
-        window.top.postMessage(JSON.stringify(message), '*');
+        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
         return true;
     });
 }
@@ -105,9 +105,9 @@ function appWrapperMutated(mutations, observer) {
             chatPaneObserver.observe(target, {childList: true});
 
             var message = {"state": "ready"};
-            window.top.postMessage(JSON.stringify(message), '*');
+            window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
             var message = {"state": window.frameElement.className};
-            window.top.postMessage(JSON.stringify(message), '*');
+            window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
             
             window.addEventListener("message", pasteUnsentMessage, false);
             return true;
