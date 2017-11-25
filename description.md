@@ -28,9 +28,9 @@ oder [WhatsApp Popup](https://addons.mozilla.org/de/firefox/addon/whatsapp-popup
 ansehen (beide von anderen Entwicklern), die WhatsApp™ Web in der Seitenleiste
 bzw. in einem separaten Fenster öffnen.
 
-* Wenn das Panel geschlossen wird und bereits geschriebener Text noch nicht
-gesendet wurde, so geht der Text verloren. Dies wird in einer zukünftigen
-Version behoben werden.
+* Aufgrund eines [Fehlers](https://bugzilla.mozilla.org/show_bug.cgi?id=1292701)
+im Add-On-System von Firefox ist es aktuell nicht möglich, Bilder oder Dateien
+zu versenden.
 
 
 
@@ -63,8 +63,8 @@ or [WhatsApp Popup](https://addons.mozilla.org/de/firefox/addon/whatsapp-popup/)
 (both not mine), which open WhatsApp™ Web in the sidebar or in a separate window,
 respectively.
 
-* When the panel is closed, while text is typed, but not sent, the text will be
-lost. There will be a solution for this in the future.
+* Due to a [bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1292701) in the
+add-on system of Firefox, it is currently not possible to send images or files.
 
 
 
@@ -96,8 +96,9 @@ o [WhatsApp Popup](https://addons.mozilla.org/de/firefox/addon/whatsapp-popup/)
 (ambas no mías), que abran WhatsApp™ Web en la barra lateral o una nueva ventana,
 respectivamente.
 
-* Si el panel se cierra con texto ya escrito pero no enviado, el texto se perderá.
-Habra una solución para esto en el futuro.
+* A causa de un [error](https://bugzilla.mozilla.org/show_bug.cgi?id=1292701)
+en el sistema de extensiónes de Firefox, actualmente no es possible enviar
+imágenes o documentos.
 
 
 
@@ -130,5 +131,6 @@ ou [WhatsApp Popup](https://addons.mozilla.org/de/firefox/addon/whatsapp-popup/)
 (les deux pas les miennes), qui ouvren WhatsApp™ Web dans la barre latérale ou
 une nouvelle fenêtre, respectivement.
 
-* Si on ferme le panel avec texte déjà écrit mais pas envoyé, le texte sera perdu.
-Il y aura une solution pour cela à l'avenir.
+* A cause d'une [erreur](https://bugzilla.mozilla.org/show_bug.cgi?id=1292701)
+dans le système d'extensions de Firefox, c'est actuellement impossible envoyer
+des images ou documents.
