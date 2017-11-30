@@ -144,7 +144,7 @@ function pasteUnsentMessage(event) {
 
                     waitforNode("#main footer div.pluggable-input-body", function() {
                         node = document.body.querySelector("#main footer div.pluggable-input-body");
-                        node.innerHTML = decodeURI(messages[recipient]);
+                        node.innerHTML = DOMPurify.sanitize(decodeURI(messages[recipient]));
                         var event = new Event('input', {
                             'bubbles': true,
                             'cancelable': true
