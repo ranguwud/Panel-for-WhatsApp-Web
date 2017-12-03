@@ -21,12 +21,26 @@ function inIframe () {
 }
 
 function countUnreadMessages() {
-    count = 0;
-    nodes = document.body.querySelectorAll('div#app > div.app-wrapper div.chat div.chat-secondary div.chat-meta span:first-child > div > span');
+    var count = 0;
+    var nodes = document.body.querySelectorAll('div#app > div.app-wrapper div.chat div.chat-secondary div.chat-meta');
     nodes.forEach(function(node) {
-        current = Number(node.innerHTML);
-        if (!isNaN(current)) {
-            count += current;
+        var unreadSpan = node.querySelector('span:first-child > div:last-child > span');
+        if (unreadSpan) {
+            var spans = node.querySelectorAll('span:first-child > div > span');
+            var muted = false;
+            //TODO: Replace this by a function like Array.some
+            for (var i = 0; i < spans.length; ++i) {
+                if (spans[i].getAttribute("data-icon") === "muted") {
+                    muted = true;
+                    break;
+                }
+            }
+            if (!muted) {
+                var current = Number(unreadSpan.innerText);
+                if (!isNaN(current)) {
+                    count += current;
+                }
+            }
         }
     });
     return count;
