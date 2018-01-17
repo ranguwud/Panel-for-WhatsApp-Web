@@ -2,19 +2,22 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+var Child;
+
 // Add event listeners
 document.addEventListener("DOMContentLoaded", popupOpened);
 window.addEventListener("unload", popupClosed, true);
-window.addEventListener("message", receiveUnsentMessages, false);
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById("popup-iframe").className = browser.extension.getURL("").split("/")[2];
-}, false);
+//window.addEventListener("message", receiveUnsentMessages, false);
 
 
 // Function definitions
 function popupOpened(event) {
     var background = browser.extension.getBackgroundPage();
+    var uuid = browser.extension.getURL("").split("/")[2];
+
     background.popupOpened();
+    Child = new IChild(uuid);
+    document.getElementById("popup-iframe").className = uuid;
     document.getElementById("popup-iframe").src = "https://web.whatsapp.com/";
 }
 

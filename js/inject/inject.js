@@ -2,12 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+var Parent;
+
 // Attach bodyObserver, if loaded in iframe
 if (inIframe()) {
     var target = document.body;
     var bodyObserver = new MutationObserver(bodyMutated);
     bodyObserver.observe(target, {childList: true});
     var uuid = window.frameElement.className;
+    Parent = new IParent(uuid);
+    Parent.log("test");
 }
 
 
