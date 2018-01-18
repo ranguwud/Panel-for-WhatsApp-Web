@@ -53,12 +53,12 @@ function countUnreadMessages() {
 function postUnreadMessages(unreadMessageCount) {
     if (unreadMessageCount > 0) {
         if (unreadMessageCount < 100) {
-            window.top.postMessage(unreadMessageCount.toString(), 'moz-extension://' + uuid + '/');
+            Parent.showMessageCount(unreadMessageCount.toString());
         } else {
-            window.top.postMessage('99+', 'moz-extension://' + uuid + '/');
+            Parent.showMessageCount('99+');
         }
     } else {
-        window.top.postMessage('', 'moz-extension://' + uuid + '/');
+        Parent.showMessageCount('');
     }
 }
 

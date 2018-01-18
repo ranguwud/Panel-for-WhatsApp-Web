@@ -3,24 +3,22 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 // Declare variables
-messageStore = {};
+var messageStore = {};
+var Child;
 
 
 // Add event listeners
-window.addEventListener("message", receiveUnreadMessages, false);
 browser.webRequest.onHeadersReceived.addListener(removeResponseHeaders, {"urls": ["*://*.web.whatsapp.com/*"]}, ["blocking", "responseHeaders"]);
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById("background-iframe").className = browser.extension.getURL("").split("/")[2];
+    var uuid = browser.extension.getURL("").split("/")[2];
+
+    Child = new IChild(uuid);
+    document.getElementById("background-iframe").className = uuid;
+    document.getElementById("background-iframe").src = "https://web.whatsapp.com/";
 }, false);
 
 
 // Function definitions
-function receiveUnreadMessages(event) {
-    if (event.origin !== "https://web.whatsapp.com")
-        return;
-    browser.browserAction.setBadgeText({text: event.data});
-}
-
 function popupOpened() {
     browser.browserAction.setBadgeText({text: ""});
     document.getElementById("background-iframe").src = "about:blank";

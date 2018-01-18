@@ -17,4 +17,8 @@ class IParent {
     log(message) {
         this.sendMessage("log", message);
     }
+
+    showMessageCount(str) {
+        this.sendMessage("showMessageCount", str);
+    }
 }
