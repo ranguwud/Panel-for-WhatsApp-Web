@@ -1,6 +1,7 @@
 class IChild {
     constructor (uuid) {
         this._uuid = uuid;
+        this._debug = false;
         window.addEventListener("message", function(self) {
             return function(event) {
                 return self.receiveMessage(event);
@@ -27,6 +28,12 @@ class IChild {
 
     logMessage(str) {
         console.log(str);
+    }
+
+    debugMessage(str) {
+        if (this._debug) {
+            console.log(str);
+        }
     }
 
     showMessageCount(str) {

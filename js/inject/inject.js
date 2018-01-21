@@ -11,7 +11,7 @@ if (inIframe()) {
     bodyObserver.observe(target, {childList: true});
     var uuid = window.frameElement.className;
     Parent = new IParent(uuid);
-    Parent.log("test");
+    Parent.debug("Parent interface initialized.");
 }
 
 

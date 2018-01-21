@@ -17,6 +17,7 @@ function popupOpened(event) {
 
     background.popupOpened();
     Child = new IChild(uuid);
+    Child._debug = true;
     document.getElementById("popup-iframe").className = uuid;
     document.getElementById("popup-iframe").src = "https://web.whatsapp.com/";
 }
