@@ -13,6 +13,13 @@ class IChild {
         return this._uuid
     }
 
+    sendMessage(type, content) {
+        var messageDict = {};
+        messageDict[type] = content;
+        var message = JSON.stringify(messageDict);
+        document.getElementById("popup-iframe").contentWindow.postMessage(message, "https://web.whatsapp.com");
+    }
+    
     receiveMessage(event) {
         if (event.origin !== "https://web.whatsapp.com")
             return;
@@ -20,19 +27,41 @@ class IChild {
 
         Object.entries(message).forEach(([key, value]) => {
             if (key === "log")
-                this.logMessage(value);
+                this._logMessage(value);
             if (key === "debug")
-                this.debugMessage(value);
+                this._debugMessage(value);
+            if (key === "storeMessage")
+                this._storeMessage(value);
+            if (key === "requestUnsentMessages")
+                this._requestUnsentMessages(value);
         });
     }
 
-    logMessage(str) {
+    provideUnsentMessages() {
+        var background = browser.extension.getBackgroundPage();
+        this.sendMessage("provideUnsentMessages", background.messageStore);
+    }
+
+    _logMessage(str) {
         console.log(str);
     }
 
-    debugMessage(str) {
+    _debugMessage(str) {
         if (this._debug) {
             console.log(str);
         }
+    }
+    
+    _storeMessage(data) {
+        var background = browser.extension.getBackgroundPage();
+        Object.entries(data).forEach(([key, value]) => {
+            background.messageStore[key] = value;
+        });
+        this._debugMessage(background.messageStore);
+    }
+    
+    _requestUnsentMessages(data) {
+        console.log("Request received");
+        this.provideUnsentMessages();
     }
 }

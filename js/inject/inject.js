@@ -70,31 +70,32 @@ function chatMutated(mutations) {
 }
 
 function textMutated(mutations) {
+    Parent.debug("Text mutated");
     mutations.some(function(mutation) {
         title = document.body.querySelector("div.chat.active div.chat-title > span").title;
         //TODO: Can't that be done using mutation.target??
         text = encodeURI(document.body.querySelector("#main footer div.pluggable-input-body").innerHTML);
         var data = {};
         data[title] = text;
-        var message = { "message": JSON.stringify(data) };
-        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+        Parent.storeMessage(data);
         return true;
     });
 }
 
 function placeholderMutated(mutations) {
+    Parent.debug("Placeholder mutated");
     mutations.some(function(mutation) {
         title = document.body.querySelector("div.chat.active div.chat-title > span").title;
         text = encodeURI(mutation.target.parentNode.querySelector("div.pluggable-input-body").innerHTML);
         var data = {};
         data[title] = text;
-        var message = { "message": JSON.stringify(data) };
-        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+        Parent.storeMessage(data);
         return true;
     });
 }
 
 function chatPaneMutated(mutations) {
+    Parent.debug("Chat pane mutated");
     var target = document.body.querySelector("#main footer div.pluggable-input-body");
     var textObserver = new MutationObserver(textMutated);
     textObserver.observe(target, {characterData: true, subtree: true});
@@ -104,6 +105,7 @@ function chatPaneMutated(mutations) {
 }
 
 function appWrapperMutated(mutations, observer) {
+    Parent.debug("App wrapper mutated");
     mutations.some(function(mutation) {
         if (window.frameElement.id == "background-iframe") {
             targets = mutation.target.querySelectorAll('div.chat div.chat-secondary div.chat-meta span:first-child');
@@ -118,14 +120,12 @@ function appWrapperMutated(mutations, observer) {
                 return true;
             }
         } else {
-            target = mutation.target.querySelector('div.app.two');
+            target = mutation.target.querySelector('div.app.two > div:last-child');
             var chatPaneObserver = new MutationObserver(chatPaneMutated);
             chatPaneObserver.observe(target, {childList: true});
-
-            var message = {"state": "ready"};
-            window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
-            var message = {"state": window.frameElement.className};
-            window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+            
+            Parent.debug("Requesting unsent messages");
+            Parent.requestUnsentMessages();
             
             window.addEventListener("message", pasteUnsentMessage, false);
             return true;
@@ -146,37 +146,8 @@ function waitforNode(selector, callback) {
     callback();
 }
 
-function pasteUnsentMessage(event) {
-    messages = JSON.parse(event.data);
-    for (var recipient in messages) {
-        if (!messages[recipient] == "") {
-            targets = document.body.querySelectorAll('div.chat span.emojitext.ellipsify');
-            targets.forEach(function(target) {
-                if (recipient == target.title) {
-                    function triggerMouseEvent (node, eventType) {
-                        var clickEvent = document.createEvent ('MouseEvents');
-                        clickEvent.initEvent (eventType, true, true);
-                        node.dispatchEvent (clickEvent);
-                    }
-                    triggerMouseEvent (target, "mousedown");
-
-                    waitforNode("#main footer div.pluggable-input-body", function() {
-                        node = document.body.querySelector("#main footer div.pluggable-input-body");
-                        node.innerHTML = DOMPurify.sanitize(decodeURI(messages[recipient]));
-                        var event = new Event('input', {
-                            'bubbles': true,
-                            'cancelable': true
-                        });
-                        node.dispatchEvent(event);
-                    });
-                    return true;
-                }
-            });
-        }
-    }
-}
-
 function appMutated(mutations, observer) {
+    Parent.debug("App mutated");
     mutations.some(function(mutation) {
         target = mutation.target.querySelector('div.app-wrapper');
         if (target) {
@@ -189,6 +160,7 @@ function appMutated(mutations, observer) {
 }
 
 function bodyMutated(mutations, observer) {
+    Parent.debug("Body mutated");
     mutations.some(function(mutation) {
         target = mutation.target.querySelector('div#app');
         if (target) {
