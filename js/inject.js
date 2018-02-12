@@ -22,9 +22,9 @@ function inIframe () {
 
 function countUnreadMessages() {
     var count = 0;
-    var nodes = document.body.querySelectorAll('div#app > div.app-wrapper div.chat div.chat-secondary div.chat-meta');
+    var nodes = document.body.querySelectorAll('div#pane-side > div > div > div > div');
     nodes.forEach(function(node) {
-        var unreadSpan = node.querySelector('span:first-child > div:last-child > span');
+        var unreadSpan = node.querySelector('div > div > div:last-child > div:last-child > div:last-child > span:first-child');
         if (unreadSpan) {
             var spans = node.querySelectorAll('span:first-child > div > span');
             var muted = false;
@@ -102,11 +102,12 @@ function chatPaneMutated(mutations) {
 function appWrapperMutated(mutations, observer) {
     mutations.some(function(mutation) {
         if (window.frameElement.id == "background-iframe") {
-            targets = mutation.target.querySelectorAll('div.chat div.chat-secondary div.chat-meta span:first-child');
-            if (targets.length > 0) {
+            chats = document.body.querySelectorAll('div#pane-side > div > div > div > div');
+            if (chats.length > 0) {
                 var count = countUnreadMessages();
                 postUnreadMessages(count);
-                targets.forEach(function(target) {
+                chats.forEach(function(chat) {
+                    var target = chat.querySelector('div > div > div:last-child > div:last-child > div:last-child > span:first-child');
                     var chatObserver = new MutationObserver(chatMutated);
                     chatObserver.observe(target, {childList: true, characterData: true, subtree: true});
                 });
