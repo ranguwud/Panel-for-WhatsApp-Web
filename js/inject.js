@@ -175,7 +175,7 @@ function pasteUnsentMessage(event) {
 
 function appMutated(mutations, observer) {
     mutations.some(function(mutation) {
-        target = mutation.target.querySelector('div.app-wrapper');
+        target = mutation.target.querySelector('div.app-wrapper-web');
         if (target) {
             var appWrapperObserver = new MutationObserver(appWrapperMutated);
             appWrapperObserver.observe(target, {childList: true})
