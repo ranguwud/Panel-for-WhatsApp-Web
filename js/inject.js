@@ -2,13 +2,146 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-// Attach bodyObserver, if loaded in iframe
 if (inIframe()) {
+    // Attach bodyObserver
     var target = document.body;
     var bodyObserver = new MutationObserver(bodyMutated);
     bodyObserver.observe(target, {childList: true});
+    // Get UUID of extension
     var uuid = window.frameElement.className;
+    // Signal successful injection
+    var message = {"debug": "JS injection successful"};
+    window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
 }
+
+// If present, attach appObserver to 'div#app', then disconnect bodyObserver.
+function bodyMutated(mutations, observer) {
+    mutations.some(function(mutation) {
+        target = mutation.target.querySelector('div#app');
+        if (target) {
+            var appObserver = new MutationObserver(appMutated);
+            appObserver.observe(target, {childList: true});
+            observer.disconnect();
+            var message = {"debug": "MutationObserver appMutated attached."}
+            window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+            return true;
+        }
+    });
+}
+
+// If present, attach appWrapperMutated to 'div.app-wrapper-web', then disconnect appObserver.
+function appMutated(mutations, observer) {
+    mutations.some(function(mutation) {
+        target = mutation.target.querySelector('div.app-wrapper-web');
+        if (target) {
+            var appWrapperObserver = new MutationObserver(appWrapperMutated);
+            appWrapperObserver.observe(target, {childList: true})
+            observer.disconnect();
+            var message = {"debug": "MutationObserver appWrapperMutated attached."}
+            window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+            return true;
+        }
+    });
+}
+
+// In background page:
+//   To all open chats attach chatMutated, then disconnect appWrapperObserver.
+//   Send number of unread messages to background.js
+// In popup page:
+//   If present, attach chatPaneMutated to 'div.app.two', then disconnect appWrapperObserver
+//   Send state ready to popup.js
+function appWrapperMutated(mutations, observer) {
+    mutations.some(function(mutation) {
+        if (window.frameElement.id == "background-iframe") {
+            chats = document.body.querySelectorAll('div#pane-side > div > div > div > div');
+            if (chats.length > 0) {
+                var count = countUnreadMessages();
+                postUnreadMessages(count);
+                chats.forEach(function(chat) {
+                    var target = chat.querySelector('div > div > div:last-child > div:last-child > div:last-child > span:first-child');
+                    var chatObserver = new MutationObserver(chatMutated);
+                    chatObserver.observe(target, {childList: true, characterData: true, subtree: true});
+                });
+                observer.disconnect();
+                return true;
+            }
+        } else {
+            target = mutation.target.querySelector('div#side');//'div.app.two');
+            if (target) {
+                var chatPaneObserver = new MutationObserver(chatPaneMutated);
+                chatPaneObserver.observe(target, {attributes: true, subtree: true});
+                observer.disconnect();
+                var message = {"debug": "MutationObserver chatPaneMutated attached."}
+                window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+
+                window.addEventListener("message", pasteUnsentMessage, false);
+
+                var message = {"state": "ready"};
+                window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+                //var message = {"state": window.frameElement.className};
+                //window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+                return true;
+            }
+        }
+    });
+}
+
+// When chat is mutated, count and send unread messages
+function chatMutated(mutations) {
+    mutations.forEach(function(mutation) {
+        var count = countUnreadMessages();
+        postUnreadMessages(count);
+    });
+}
+
+// If chat pane is mutated, i.e. a new chat selected, attach textMutated and placeholderMutated
+function chatPaneMutated(mutations) {
+    var target = document.body.querySelector("#main div.copyable-area div.copyable-text.selectable-text");
+    if (target) {
+        var textObserver = new MutationObserver(textMutated);
+        textObserver.observe(target, {characterData: true, subtree: true});
+        var message = {"debug": "MutationObserver textMutated attached."}
+        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+    }
+
+/*
+    var target = document.body.querySelector("#main footer div.pluggable-input-placeholder");
+    if (target) {
+        var textObserver = new MutationObserver(placeholderMutated);
+        textObserver.observe(target, {attributes: true});
+        var message = {"debug": "MutationObserver placeholderMutated attached."}
+        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+    }
+*/
+}
+
+function textMutated(mutations) {
+    mutations.some(function(mutation) {
+        title = document.body.querySelector("#main header > div:nth-child(2) > div > div > span").title;
+        //TODO: Can't that be done using mutation.target??
+        text = encodeURI(document.body.querySelector("#main div.copyable-area div.copyable-text.selectable-text").innerHTML);
+        var data = {};
+        data[title] = text;
+        var message = { "debug": JSON.stringify(data) };
+        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+        return true;
+    });
+}
+
+/*
+function placeholderMutated(mutations) {
+    mutations.some(function(mutation) {
+        title = document.body.querySelector("div.chat.active div.chat-title > span").title;
+        text = encodeURI(mutation.target.parentNode.querySelector("div.pluggable-input-body").innerHTML);
+        var data = {};
+        data[title] = text;
+        var message = { "message": JSON.stringify(data) };
+        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+        return true;
+    });
+}
+*/
+
 
 
 // Function definitions
@@ -49,87 +182,17 @@ function countUnreadMessages() {
 function postUnreadMessages(unreadMessageCount) {
     if (unreadMessageCount > 0) {
         if (unreadMessageCount < 100) {
-            window.top.postMessage(unreadMessageCount.toString(), 'moz-extension://' + uuid + '/');
+            var message = { "badge": unreadMessageCount.toString()};
         } else {
-            window.top.postMessage('99+', 'moz-extension://' + uuid + '/');
+            var message = { "badge": '99+'};
         }
     } else {
-        window.top.postMessage('', 'moz-extension://' + uuid + '/');
+        var message = { "badge": ''};
     }
+    window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
 }
 
-function chatMutated(mutations) {
-    mutations.forEach(function(mutation) {
-        var count = countUnreadMessages();
-        postUnreadMessages(count);
-    });
-}
-
-function textMutated(mutations) {
-    mutations.some(function(mutation) {
-        title = document.body.querySelector("div.chat.active div.chat-title > span").title;
-        //TODO: Can't that be done using mutation.target??
-        text = encodeURI(document.body.querySelector("#main footer div.pluggable-input-body").innerHTML);
-        var data = {};
-        data[title] = text;
-        var message = { "message": JSON.stringify(data) };
-        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
-        return true;
-    });
-}
-
-function placeholderMutated(mutations) {
-    mutations.some(function(mutation) {
-        title = document.body.querySelector("div.chat.active div.chat-title > span").title;
-        text = encodeURI(mutation.target.parentNode.querySelector("div.pluggable-input-body").innerHTML);
-        var data = {};
-        data[title] = text;
-        var message = { "message": JSON.stringify(data) };
-        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
-        return true;
-    });
-}
-
-function chatPaneMutated(mutations) {
-    var target = document.body.querySelector("#main footer div.pluggable-input-body");
-    var textObserver = new MutationObserver(textMutated);
-    textObserver.observe(target, {characterData: true, subtree: true});
-    var target = document.body.querySelector("#main footer div.pluggable-input-placeholder");
-    var textObserver = new MutationObserver(placeholderMutated);
-    textObserver.observe(target, {attributes: true});
-}
-
-function appWrapperMutated(mutations, observer) {
-    mutations.some(function(mutation) {
-        if (window.frameElement.id == "background-iframe") {
-            chats = document.body.querySelectorAll('div#pane-side > div > div > div > div');
-            if (chats.length > 0) {
-                var count = countUnreadMessages();
-                postUnreadMessages(count);
-                chats.forEach(function(chat) {
-                    var target = chat.querySelector('div > div > div:last-child > div:last-child > div:last-child > span:first-child');
-                    var chatObserver = new MutationObserver(chatMutated);
-                    chatObserver.observe(target, {childList: true, characterData: true, subtree: true});
-                });
-                observer.disconnect();
-                return true;
-            }
-        } else {
-            target = mutation.target.querySelector('div.app.two');
-            var chatPaneObserver = new MutationObserver(chatPaneMutated);
-            chatPaneObserver.observe(target, {childList: true});
-
-            var message = {"state": "ready"};
-            window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
-            var message = {"state": window.frameElement.className};
-            window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
-            
-            window.addEventListener("message", pasteUnsentMessage, false);
-            return true;
-        }
-    });
-}
-
+/*
 function waitforNode(selector, callback) {
     // Check if condition met. If not, re-check later (msec).
     node = document.body.querySelector(selector)
@@ -172,27 +235,4 @@ function pasteUnsentMessage(event) {
         }
     }
 }
-
-function appMutated(mutations, observer) {
-    mutations.some(function(mutation) {
-        target = mutation.target.querySelector('div.app-wrapper-web');
-        if (target) {
-            var appWrapperObserver = new MutationObserver(appWrapperMutated);
-            appWrapperObserver.observe(target, {childList: true})
-            observer.disconnect();
-            return true;
-        }
-    });
-}
-
-function bodyMutated(mutations, observer) {
-    mutations.some(function(mutation) {
-        target = mutation.target.querySelector('div#app');
-        if (target) {
-            var appObserver = new MutationObserver(appMutated);
-            appObserver.observe(target, {childList: true});
-            observer.disconnect();
-            return true;
-        }
-    });
-}
+*/

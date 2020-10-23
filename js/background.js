@@ -6,19 +6,28 @@
 messageStore = {};
 
 
-// Add event listeners
-window.addEventListener("message", receiveUnreadMessages, false);
+// Remove response headers that prevent embedding in a frame
 browser.webRequest.onHeadersReceived.addListener(removeResponseHeaders, {"urls": ["*://*.web.whatsapp.com/*"]}, ["blocking", "responseHeaders"]);
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("background-iframe").className = browser.extension.getURL("").split("/")[2];
 }, false);
+
+// Add event listeners
+window.addEventListener("message", receiveUnreadMessages, false);
 
 
 // Function definitions
 function receiveUnreadMessages(event) {
     if (event.origin !== "https://web.whatsapp.com")
         return;
-    browser.browserAction.setBadgeText({text: event.data});
+    var message = JSON.parse(event.data);
+    
+    if ("badge" in message) {
+        browser.browserAction.setBadgeText({text: message["badge"]});
+    }
+    if ("debug" in message) {
+        console.log("DEBUG:", message["debug"]);
+    }
 }
 
 function popupOpened() {

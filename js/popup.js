@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("popup-iframe").className = browser.extension.getURL("").split("/")[2];
 }, false);
 
-
 // Function definitions
 function popupOpened(event) {
     var background = browser.extension.getBackgroundPage();
@@ -29,6 +28,9 @@ function receiveUnsentMessages(event) {
         return;
     var message = JSON.parse(event.data);
     
+    if ("debug" in message) {
+        console.log("DEBUG:", message["debug"]);
+    }
     if ("message" in message) {
         var data = JSON.parse(message["message"]);
         var background = browser.extension.getBackgroundPage();
