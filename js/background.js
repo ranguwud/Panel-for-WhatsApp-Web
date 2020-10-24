@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 // Declare variables
-messageStore = {};
+var messageStore = {};
 
 
 // Remove response headers that prevent embedding in a frame
@@ -13,11 +13,11 @@ document.addEventListener('DOMContentLoaded', function() {
 }, false);
 
 // Add event listeners
-window.addEventListener("message", receiveUnreadMessages, false);
+window.addEventListener("message", receiveMessages, false);
 
 
 // Function definitions
-function receiveUnreadMessages(event) {
+function receiveMessages(event) {
     if (event.origin !== "https://web.whatsapp.com")
         return;
     var message = JSON.parse(event.data);

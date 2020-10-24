@@ -5,7 +5,7 @@
 // Add event listeners
 document.addEventListener("DOMContentLoaded", popupOpened);
 window.addEventListener("unload", popupClosed, true);
-window.addEventListener("message", receiveUnsentMessages, false);
+window.addEventListener("message", receiveMessages, false);
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("popup-iframe").className = browser.extension.getURL("").split("/")[2];
 }, false);
@@ -23,7 +23,7 @@ function popupClosed(event) {
     background.popupClosed();
 }
 
-function receiveUnsentMessages(event) {
+function receiveMessages(event) {
     if (event.origin !== "https://web.whatsapp.com")
         return;
     var message = JSON.parse(event.data);
@@ -40,11 +40,16 @@ function receiveUnsentMessages(event) {
             }
         }
     }
-    if ("state" in message) {
-        if (message["state"] == "ready") {
+    if ("status" in message) {
+        if (message["status"] === "request-message-drafts") {
             var background = browser.extension.getBackgroundPage();
-            var msg = JSON.stringify(background.messageStore);
-            document.getElementById("popup-iframe").contentWindow.postMessage(msg, 'https://web.whatsapp.com');
+            postMessage("draft", background.messageStore);
         }
     }
+}
+
+function postMessage(messageType, messageContent) {
+    var message = {};
+    message[messageType] = messageContent;
+    document.getElementById("popup-iframe").contentWindow.postMessage(JSON.stringify(message), 'https://web.whatsapp.com');
 }

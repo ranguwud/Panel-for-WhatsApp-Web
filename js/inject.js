@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 if (inIframe()) {
+    // Add event listeners
+    window.addEventListener("message", receiveMessages, false);
     // Attach bodyObserver
     var target = document.body;
     var bodyObserver = new MutationObserver(bodyMutated);
@@ -11,6 +13,8 @@ if (inIframe()) {
     var uuid = window.frameElement.className;
     // Contact of last selected chat
     var lastContact = "";
+    // Store of message drafts
+    var messageStore = {};
     // Signal successful injection
     postDebugMessage("JS injection successful");
 }
@@ -64,16 +68,18 @@ function appWrapperMutated(mutations, observer) {
                 return true;
             }
         } else {
-            target = mutation.target.querySelector('div#side');//'div.app.two');
+            target = mutation.target.querySelector('div');
+            if (target) {
+                target.style.minHeight = "580px";
+            }
+            target = mutation.target.querySelector('div#side');
             if (target) {
                 var chatPaneObserver = new MutationObserver(chatPaneMutated);
                 chatPaneObserver.observe(target, {attributes: true, subtree: true});
                 observer.disconnect();
                 postDebugMessage("MutationObserver chatPaneMutated attached.");
 
-                //window.addEventListener("message", pasteUnsentMessage, false);
-
-                postStatusMessage("ready");
+                postStatusMessage("request-message-drafts");
                 return true;
             }
         }
@@ -92,45 +98,25 @@ function chatPaneMutated(mutations) {
     var currentContact = getCurrentContact();
     if (currentContact !== lastContact) {
         lastContact = currentContact;
-        var target = document.body.querySelector("#main div.copyable-area div.copyable-text.selectable-text");
+        var target = document.body.querySelector("#main footer > div.copyable-area div.copyable-text.selectable-text");
         if (target) {
+            if(pasteMessageDraft(currentContact))
+                postDebugMessage("Message draft restored for " + currentContact + ".")
             var textObserver = new MutationObserver(textMutated);
             textObserver.observe(target, {characterData: true, subtree: true});
             postDebugMessage("MutationObserver textMutated attached for contact " + currentContact + ".");
         }
     }
-
-/*
-    var target = document.body.querySelector("#main footer div.pluggable-input-placeholder");
-    if (target) {
-        var textObserver = new MutationObserver(placeholderMutated);
-        textObserver.observe(target, {attributes: true});
-        var message = {"debug": "MutationObserver placeholderMutated attached."}
-        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
-    }
-*/
 }
 
 function textMutated(mutations) {
     mutations.some(function(mutation) {
-        postMessageDraft(getCurrentContact(), getMessageDraft());
+        var contact = getCurrentContact();
+        postMessageDraft(contact, getMessageDraft(contact));
         return true;
     });
 }
 
-/*
-function placeholderMutated(mutations) {
-    mutations.some(function(mutation) {
-        title = document.body.querySelector("div.chat.active div.chat-title > span").title;
-        text = encodeURI(mutation.target.parentNode.querySelector("div.pluggable-input-body").innerHTML);
-        var data = {};
-        data[title] = text;
-        var message = { "message": JSON.stringify(data) };
-        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
-        return true;
-    });
-}
-*/
 
 
 
@@ -152,8 +138,8 @@ function getCurrentContact() {
     }
 }
 
-function getMessageDraft() {
-    target = document.body.querySelector("#main div.copyable-area div.copyable-text.selectable-text");
+function getMessageDraft(contact) {
+    target = document.body.querySelector("#main footer > div.copyable-area div.copyable-text.selectable-text");
     if (!target)
         return "";
         
@@ -163,6 +149,26 @@ function getMessageDraft() {
     }
     
     return encodeURI(text);
+}
+
+function pasteMessageDraft(contact) {
+    if (contact in messageStore) {
+        target = document.body.querySelector("#main footer > div.copyable-area div.copyable-text.selectable-text");
+        if (!target)
+            return false;
+
+        text = messageStore[contact];
+        delete messageStore[contact];
+        target.innerHTML = decodeURI(text);
+        var event = new Event('input', {
+            'bubbles': true,
+            'cancelable': true
+        });
+        target.dispatchEvent(event);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 function getUnreadMessageCount() {
@@ -189,6 +195,17 @@ function getUnreadMessageCount() {
         }
     });
     return count;
+}
+
+function receiveMessages(event) {
+    if (event.origin !== "moz-extension://" + uuid)
+        return;
+    var message = JSON.parse(event.data);
+    
+    if ("draft" in message) {
+        messageStore = message["draft"];
+        postDebugMessage("Draft messages recieved from background page.");
+    }
 }
 
 function postMessage(messageType, messageContent) {
@@ -222,48 +239,3 @@ function postUnreadMessageCount(count) {
         postMessage("badge", '');
     }
 }
-
-/*
-function waitforNode(selector, callback) {
-    // Check if condition met. If not, re-check later (msec).
-    node = document.body.querySelector(selector)
-    while (node == null) {
-        setTimeout(function() {
-            waitforNode(selector, callback);
-        }, 100);
-        return;
-    }
-    // Condition finally met. callback() can be executed.
-    callback();
-}
-
-function pasteUnsentMessage(event) {
-    messages = JSON.parse(event.data);
-    for (var recipient in messages) {
-        if (!messages[recipient] == "") {
-            targets = document.body.querySelectorAll('div.chat span.emojitext.ellipsify');
-            targets.forEach(function(target) {
-                if (recipient == target.title) {
-                    function triggerMouseEvent (node, eventType) {
-                        var clickEvent = document.createEvent ('MouseEvents');
-                        clickEvent.initEvent (eventType, true, true);
-                        node.dispatchEvent (clickEvent);
-                    }
-                    triggerMouseEvent (target, "mousedown");
-
-                    waitforNode("#main footer div.pluggable-input-body", function() {
-                        node = document.body.querySelector("#main footer div.pluggable-input-body");
-                        node.innerHTML = DOMPurify.sanitize(decodeURI(messages[recipient]));
-                        var event = new Event('input', {
-                            'bubbles': true,
-                            'cancelable': true
-                        });
-                        node.dispatchEvent(event);
-                    });
-                    return true;
-                }
-            });
-        }
-    }
-}
-*/
