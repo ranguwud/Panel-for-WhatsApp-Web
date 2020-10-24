@@ -31,8 +31,8 @@ function receiveUnsentMessages(event) {
     if ("debug" in message) {
         console.log("DEBUG:", message["debug"]);
     }
-    if ("message" in message) {
-        var data = JSON.parse(message["message"]);
+    if ("draft" in message) {
+        var data = message["draft"];
         var background = browser.extension.getBackgroundPage();
         for (var key in data) {
             if (data.hasOwnProperty(key)) {           

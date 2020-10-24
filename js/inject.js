@@ -9,9 +9,10 @@ if (inIframe()) {
     bodyObserver.observe(target, {childList: true});
     // Get UUID of extension
     var uuid = window.frameElement.className;
+    // Contact of last selected chat
+    var lastContact = "";
     // Signal successful injection
-    var message = {"debug": "JS injection successful"};
-    window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+    postDebugMessage("JS injection successful");
 }
 
 // If present, attach appObserver to 'div#app', then disconnect bodyObserver.
@@ -22,8 +23,7 @@ function bodyMutated(mutations, observer) {
             var appObserver = new MutationObserver(appMutated);
             appObserver.observe(target, {childList: true});
             observer.disconnect();
-            var message = {"debug": "MutationObserver appMutated attached."}
-            window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+            postDebugMessage("MutationObserver appMutated attached.");
             return true;
         }
     });
@@ -37,8 +37,7 @@ function appMutated(mutations, observer) {
             var appWrapperObserver = new MutationObserver(appWrapperMutated);
             appWrapperObserver.observe(target, {childList: true})
             observer.disconnect();
-            var message = {"debug": "MutationObserver appWrapperMutated attached."}
-            window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+            postDebugMessage("MutationObserver appWrapperMutated attached.");
             return true;
         }
     });
@@ -55,8 +54,7 @@ function appWrapperMutated(mutations, observer) {
         if (window.frameElement.id == "background-iframe") {
             chats = document.body.querySelectorAll('div#pane-side > div > div > div > div');
             if (chats.length > 0) {
-                var count = countUnreadMessages();
-                postUnreadMessages(count);
+                postUnreadMessageCount(getUnreadMessageCount());
                 chats.forEach(function(chat) {
                     var target = chat.querySelector('div > div > div:last-child > div:last-child > div:last-child > span:first-child');
                     var chatObserver = new MutationObserver(chatMutated);
@@ -71,15 +69,11 @@ function appWrapperMutated(mutations, observer) {
                 var chatPaneObserver = new MutationObserver(chatPaneMutated);
                 chatPaneObserver.observe(target, {attributes: true, subtree: true});
                 observer.disconnect();
-                var message = {"debug": "MutationObserver chatPaneMutated attached."}
-                window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+                postDebugMessage("MutationObserver chatPaneMutated attached.");
 
-                window.addEventListener("message", pasteUnsentMessage, false);
+                //window.addEventListener("message", pasteUnsentMessage, false);
 
-                var message = {"state": "ready"};
-                window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
-                //var message = {"state": window.frameElement.className};
-                //window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+                postStatusMessage("ready");
                 return true;
             }
         }
@@ -89,19 +83,21 @@ function appWrapperMutated(mutations, observer) {
 // When chat is mutated, count and send unread messages
 function chatMutated(mutations) {
     mutations.forEach(function(mutation) {
-        var count = countUnreadMessages();
-        postUnreadMessages(count);
+        postUnreadMessageCount(getUnreadMessageCount());
     });
 }
 
-// If chat pane is mutated, i.e. a new chat selected, attach textMutated and placeholderMutated
+// If chat pane is mutated and a new chat selected, attach textMutated and placeholderMutated
 function chatPaneMutated(mutations) {
-    var target = document.body.querySelector("#main div.copyable-area div.copyable-text.selectable-text");
-    if (target) {
-        var textObserver = new MutationObserver(textMutated);
-        textObserver.observe(target, {characterData: true, subtree: true});
-        var message = {"debug": "MutationObserver textMutated attached."}
-        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+    var currentContact = getCurrentContact();
+    if (currentContact !== lastContact) {
+        lastContact = currentContact;
+        var target = document.body.querySelector("#main div.copyable-area div.copyable-text.selectable-text");
+        if (target) {
+            var textObserver = new MutationObserver(textMutated);
+            textObserver.observe(target, {characterData: true, subtree: true});
+            postDebugMessage("MutationObserver textMutated attached for contact " + currentContact + ".");
+        }
     }
 
 /*
@@ -117,13 +113,7 @@ function chatPaneMutated(mutations) {
 
 function textMutated(mutations) {
     mutations.some(function(mutation) {
-        title = document.body.querySelector("#main header > div:nth-child(2) > div > div > span").title;
-        //TODO: Can't that be done using mutation.target??
-        text = encodeURI(document.body.querySelector("#main div.copyable-area div.copyable-text.selectable-text").innerHTML);
-        var data = {};
-        data[title] = text;
-        var message = { "debug": JSON.stringify(data) };
-        window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+        postMessageDraft(getCurrentContact(), getMessageDraft());
         return true;
     });
 }
@@ -153,7 +143,29 @@ function inIframe () {
     }
 }
 
-function countUnreadMessages() {
+function getCurrentContact() {
+    target = document.body.querySelector("#main header > div:nth-child(2) > div > div > span");
+    if (target) {
+        return DOMPurify.sanitize(target.title);
+    } else {
+        return "";
+    }
+}
+
+function getMessageDraft() {
+    target = document.body.querySelector("#main div.copyable-area div.copyable-text.selectable-text");
+    if (!target)
+        return "";
+        
+    text = DOMPurify.sanitize(target.innerHTML).trim();
+    while (text.endsWith("<br>")) {
+        text = text.slice(0, -4).trim();
+    }
+    
+    return encodeURI(text);
+}
+
+function getUnreadMessageCount() {
     var count = 0;
     var nodes = document.body.querySelectorAll('div#pane-side > div > div > div > div');
     nodes.forEach(function(node) {
@@ -179,17 +191,36 @@ function countUnreadMessages() {
     return count;
 }
 
-function postUnreadMessages(unreadMessageCount) {
-    if (unreadMessageCount > 0) {
-        if (unreadMessageCount < 100) {
-            var message = { "badge": unreadMessageCount.toString()};
+function postMessage(messageType, messageContent) {
+    var message = {};
+    message[messageType] = messageContent;
+    window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
+}
+
+function postDebugMessage(messageContent) {
+    postMessage("debug", messageContent);
+}
+
+function postStatusMessage(messageContent) {
+    postMessage("status", messageContent);
+}
+
+function postMessageDraft(contact, draft) {
+    var messageContent = {};
+    messageContent[contact] = draft;
+    postMessage("draft", messageContent);
+}
+
+function postUnreadMessageCount(count) {
+    if (count > 0) {
+        if (count < 100) {
+            postMessage("badge", count.toString());
         } else {
-            var message = { "badge": '99+'};
+            postMessage("badge", '99+');
         }
     } else {
-        var message = { "badge": ''};
+        postMessage("badge", '');
     }
-    window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
 }
 
 /*
