@@ -8,6 +8,7 @@ var messageStore = {};
 
 // Remove response headers that prevent embedding in a frame
 browser.webRequest.onHeadersReceived.addListener(removeResponseHeaders, {"urls": ["*://*.web.whatsapp.com/*"]}, ["blocking", "responseHeaders"]);
+// Set frame class name.
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("background-iframe").className = browser.extension.getURL("").split("/")[2];
 }, false);
@@ -16,29 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener("message", receiveMessages, false);
 
 
-// Function definitions
-function receiveMessages(event) {
-    if (event.origin !== "https://web.whatsapp.com")
-        return;
-    var message = JSON.parse(event.data);
-    
-    if ("badge" in message) {
-        browser.browserAction.setBadgeText({text: message["badge"]});
-    }
-    if ("debug" in message) {
-        console.log("DEBUG:", message["debug"]);
-    }
-}
-
-function popupOpened() {
-    browser.browserAction.setBadgeText({text: ""});
-    document.getElementById("background-iframe").src = "about:blank";
-}
-
-function popupClosed() {
-    document.getElementById("background-iframe").src = "https://web.whatsapp.com/";
-}
-
+// Remove response headers that prevent embedding in a frame
 function removeResponseHeaders(details) {
     if (details.tabId > -1)
         return;
@@ -54,4 +33,29 @@ function removeResponseHeaders(details) {
         headers.splice(indices[i], 1);
     }
     return {"responseHeaders": headers};
+}
+
+// Receive messages from inject.js
+function receiveMessages(event) {
+    if (event.origin !== "https://web.whatsapp.com")
+        return;
+    var message = JSON.parse(event.data);
+    
+    if ("badge" in message) {
+        browser.browserAction.setBadgeText({text: message["badge"]});
+    }
+    if ("debug" in message) {
+        console.log("DEBUG:", message["debug"]);
+    }
+}
+
+// React to opening popup
+function popupOpened() {
+    browser.browserAction.setBadgeText({text: ""});
+    document.getElementById("background-iframe").src = "about:blank";
+}
+
+// React to closing popup
+function popupClosed() {
+    document.getElementById("background-iframe").src = "https://web.whatsapp.com/";
 }

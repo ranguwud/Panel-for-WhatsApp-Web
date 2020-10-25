@@ -15,6 +15,8 @@ if (inIframe()) {
     var lastContact = "";
     // Store of message drafts
     var messageStore = {};
+    // Activate debug messages?
+    var DEBUG = false;
     // Signal successful injection
     postDebugMessage("JS injection successful");
 }
@@ -51,8 +53,9 @@ function appMutated(mutations, observer) {
 //   To all open chats attach chatMutated, then disconnect appWrapperObserver.
 //   Send number of unread messages to background.js
 // In popup page:
-//   If present, attach chatPaneMutated to 'div.app.two', then disconnect appWrapperObserver
-//   Send state ready to popup.js
+//   Set minHeight to 580px to fit into popup window
+//   If present, attach chatPaneMutated to 'div#side', then disconnect appWrapperObserver
+//   Send state "request-message-drafts" to popup.js
 function appWrapperMutated(mutations, observer) {
     mutations.some(function(mutation) {
         if (window.frameElement.id == "background-iframe") {
@@ -109,6 +112,7 @@ function chatPaneMutated(mutations) {
     }
 }
 
+// Post message draft, when text in message window is mutated.
 function textMutated(mutations) {
     mutations.some(function(mutation) {
         var contact = getCurrentContact();
@@ -118,9 +122,7 @@ function textMutated(mutations) {
 }
 
 
-
-
-// Function definitions
+// Test if in iframe
 function inIframe () {
     try {
         return window.self !== window.top;
@@ -129,6 +131,7 @@ function inIframe () {
     }
 }
 
+// Get the contact name of the currently selected chat
 function getCurrentContact() {
     target = document.body.querySelector("#main header > div:nth-child(2) > div > div > span");
     if (target) {
@@ -138,12 +141,14 @@ function getCurrentContact() {
     }
 }
 
+// Get unsent message draft from composer text field
 function getMessageDraft(contact) {
     target = document.body.querySelector("#main footer > div.copyable-area div.copyable-text.selectable-text");
     if (!target)
         return "";
         
     text = DOMPurify.sanitize(target.innerHTML).trim();
+    // Remove trailing <br>s
     while (text.endsWith("<br>")) {
         text = text.slice(0, -4).trim();
     }
@@ -151,6 +156,8 @@ function getMessageDraft(contact) {
     return encodeURI(text);
 }
 
+// If present, paste a message draft for the contact of the selected chat
+// to the composer text field and return true. Else, return false.
 function pasteMessageDraft(contact) {
     if (contact in messageStore) {
         target = document.body.querySelector("#main footer > div.copyable-area div.copyable-text.selectable-text");
@@ -160,6 +167,7 @@ function pasteMessageDraft(contact) {
         text = messageStore[contact];
         delete messageStore[contact];
         target.innerHTML = decodeURI(text);
+        // Dispatch event to trigger DOM changes after text input.
         var event = new Event('input', {
             'bubbles': true,
             'cancelable': true
@@ -171,6 +179,7 @@ function pasteMessageDraft(contact) {
     }
 }
 
+// Get number of unread messages
 function getUnreadMessageCount() {
     var count = 0;
     var nodes = document.body.querySelectorAll('div#pane-side > div > div > div > div');
@@ -187,7 +196,7 @@ function getUnreadMessageCount() {
                 }
             }
             if (!muted) {
-                var current = Number(unreadSpan.innerText);
+                var current = Number(DOMPurify.sanitize(unreadSpan.innerText));
                 if (!isNaN(current)) {
                     count += current;
                 }
@@ -197,6 +206,7 @@ function getUnreadMessageCount() {
     return count;
 }
 
+// Receive messages from background.js or popup.js
 function receiveMessages(event) {
     if (event.origin !== "moz-extension://" + uuid)
         return;
@@ -208,26 +218,32 @@ function receiveMessages(event) {
     }
 }
 
+// Send messages to background.js or popup.js
 function postMessage(messageType, messageContent) {
     var message = {};
     message[messageType] = messageContent;
     window.top.postMessage(JSON.stringify(message), 'moz-extension://' + uuid + '/');
 }
 
+// Send debug message
 function postDebugMessage(messageContent) {
-    postMessage("debug", messageContent);
+    if (DEBUG)
+        postMessage("debug", messageContent);
 }
 
+// Send status message
 function postStatusMessage(messageContent) {
     postMessage("status", messageContent);
 }
 
+// Send message draft
 function postMessageDraft(contact, draft) {
     var messageContent = {};
     messageContent[contact] = draft;
     postMessage("draft", messageContent);
 }
 
+// Send badge text for unread message count
 function postUnreadMessageCount(count) {
     if (count > 0) {
         if (count < 100) {

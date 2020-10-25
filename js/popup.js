@@ -6,23 +6,26 @@
 document.addEventListener("DOMContentLoaded", popupOpened);
 window.addEventListener("unload", popupClosed, true);
 window.addEventListener("message", receiveMessages, false);
+// Set frame class name.
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("popup-iframe").className = browser.extension.getURL("").split("/")[2];
 }, false);
 
-// Function definitions
+// React to opening popup
 function popupOpened(event) {
     var background = browser.extension.getBackgroundPage();
     background.popupOpened();
     document.getElementById("popup-iframe").src = "https://web.whatsapp.com/";
 }
 
+// React to closing popup
 function popupClosed(event) {
     document.getElementById("popup-iframe").src = "about:blank";
     var background = browser.extension.getBackgroundPage();
     background.popupClosed();
 }
 
+// Receive messages from inject.js
 function receiveMessages(event) {
     if (event.origin !== "https://web.whatsapp.com")
         return;
@@ -48,6 +51,7 @@ function receiveMessages(event) {
     }
 }
 
+// Send messages to inject.js
 function postMessage(messageType, messageContent) {
     var message = {};
     message[messageType] = messageContent;
