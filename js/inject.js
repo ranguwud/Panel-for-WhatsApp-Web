@@ -106,7 +106,7 @@ function chatPaneMutated(mutations) {
             if(pasteMessageDraft(currentContact))
                 postDebugMessage("Message draft restored for " + currentContact + ".")
             var textObserver = new MutationObserver(textMutated);
-            textObserver.observe(target, {characterData: true, subtree: true});
+            textObserver.observe(target, {childList: true, characterData: true, subtree: true});
             postDebugMessage("MutationObserver textMutated attached for contact " + currentContact + ".");
         }
     }
@@ -166,7 +166,7 @@ function pasteMessageDraft(contact) {
 
         text = messageStore[contact];
         delete messageStore[contact];
-        target.innerHTML = decodeURI(text);
+        target.innerHTML = DOMPurify.sanitize(decodeURI(text));
         // Dispatch event to trigger DOM changes after text input.
         var event = new Event('input', {
             'bubbles': true,
