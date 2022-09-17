@@ -71,8 +71,8 @@ add-on system of Firefox, it is currently not possible to send images or files.
 # es
 Esta extensión añade un botón al lado de la barra de direcciones que permite
 acceder a WhatsApp™ Web en un panel separado sin interrumpir el flujo de trabajo.
-Con el panel cerrado, una nota encima del botón muestra el número de los mensajes
-ya no leídos, siempre estando en su vista sin la necesidad de cambiar la pestaña.
+Con el panel cerrado, una nota encima del botón muestra el número de mensajes
+no leídos, siempre estando en su vista sin la necesidad de cambiar de pestaña.
 Para empezar, se registra en WhatsApp™ Web como de costumbre.
 
 Note que esta extensión es un proyecto de afición que debería ayudar utilizar
@@ -83,21 +83,21 @@ registrada de Facebook Inc.
 Visite el sitio web https://github.com/ranguwud/Panel-for-WhatsApp-Web de la
 extensión para feedback, informe de errores o propuestas.
 
-Restricciónes actuales:
+Restricciones actuales:
 
-* Cada vez que se abra el panel, la conexión con WhatsApp™ Web se tiene que
-reconstituir. Desgraciadamente, esto es inevitable. Es que Mozilla ha decidido
+* Cada vez que se abre el panel, la conexión con WhatsApp™ Web se tiene que
+restablecer. Desafortunadamente, esto es inevitable. Es que Mozilla ha decidido
 implementar una nueva interfaz de programación para extensiónes con la publicación
-de Firefox 57. Una de los cambios es que ahora paneles son **forzado** a recargar
-cada vez que se abran. Esto también fuerza la reconexión con WhatsApp™ Web. Si
-no le gusta, puede mirar las extensiónes
+de Firefox 57. Una de los cambios es que ahora los paneles son **forzados** a recargar
+cada vez que se abren. Esto también fuerza la reconexión con WhatsApp™ Web. Si
+no le gusta, puede mirar las extensiones
 [Web Messenger for WhatsApp™](https://addons.mozilla.org/de/firefox/addon/whatsapp-web-messenger/)
 o [WhatsApp Popup](https://addons.mozilla.org/de/firefox/addon/whatsapp-popup/)
-(ambas no mías), que abran WhatsApp™ Web en la barra lateral o una nueva ventana,
+(ambas no mías), que abren WhatsApp™ Web en la barra lateral o en una nueva ventana,
 respectivamente.
 
 * A causa de un [error](https://bugzilla.mozilla.org/show_bug.cgi?id=1292701)
-en el sistema de extensiónes de Firefox, actualmente no es possible enviar
+en el sistema de extensiones de Firefox, actualmente no es possible enviar
 imágenes o documentos.
 
 
